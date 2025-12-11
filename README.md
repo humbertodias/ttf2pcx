@@ -1,3 +1,5 @@
+[![CD](https://github.com/humbertodias/ttf2pcx/actions/workflows/cd.yml/badge.svg)](https://github.com/humbertodias/ttf2pcx/actions/workflows/cd.yml)
+
 # TTF to PCX Font Generator
 
 A cross-platform Qt6 tool that converts TrueType fonts to PCX files for use with the Allegro game engine. Originally a Windows-only MFC application, now rewritten with Qt6 for Linux, Windows, and macOS.
