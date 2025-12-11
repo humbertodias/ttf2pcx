@@ -75,8 +75,8 @@ jobs:
             tar -czf ../../${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz .
             ;;
           macos-latest)
-            $QT_ROOT_DIR/bin/macdeployqt build/${{ env.APP_NAME }} -verbose=1
-            tar -czf ${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz -C build ${{ env.APP_NAME }}
+            $QT_ROOT_DIR/bin/macdeployqt build/${{ env.APP_NAME }}.app -verbose=1
+            tar -czf ${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz -C build ${{ env.APP_NAME }}.app
             ;;
           windows-latest)
             cd build/Release
