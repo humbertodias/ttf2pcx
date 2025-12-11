@@ -83,8 +83,6 @@ cmake --build build --config Release
 
 </details>
 
----
-
 ## Project Structure
 
 ```
