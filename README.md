@@ -109,8 +109,6 @@ This tool is built with Qt6 for cross-platform compatibility. All source files a
 
 The PCX export format and algorithm remain identical to the original for compatibility with Allegro.
 
-For details on the migration from the original MFC version, see [docs/MIGRATION.md](docs/MIGRATION.md).
-
 ## Original Credits
 
 Based on **TTF -> PCX CONVERTER**, version 2.2, April 2002  

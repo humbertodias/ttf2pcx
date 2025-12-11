@@ -1,0 +1,110 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: "TTF2PCX"
+  QT_VERSION: "6.9.0"
+  BUILD_TYPE: "Release"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: Linux
+          - os: windows-latest
+            artifact: Windows
+          - os: macos-latest
+            artifact: macOS
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: Detect architecture
+      id: arch
+      shell: bash
+      run: |
+        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          echo "ARCH=x64" >> $GITHUB_ENV
+        else
+          ARCH=$(uname -m)
+          echo "ARCH=$ARCH" >> $GITHUB_ENV
+        fi    
+
+    - name: Install dependencies (Linux only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev libxcb-cursor0
+        wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage
+        wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-${ARCH}.AppImage
+        chmod +x linuxdeploy*.AppImage
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ env.QT_VERSION }}
+
+    - name: Configure and Build
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+        cmake --build build --config ${{ env.BUILD_TYPE }}
+
+    - name: Package binary
+      shell: bash
+      run: |
+        case "${{ matrix.os }}" in
+          ubuntu-latest)
+            mkdir -p AppDir/usr/bin
+            cp build/${{ env.APP_NAME }} AppDir/usr/bin/
+
+            export QMAKE=$QT_ROOT_DIR/bin/qmake
+            ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt
+
+            cd AppDir/usr
+            tar -czf ../../${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz .
+            ;;
+          macos-latest)
+            $QT_ROOT_DIR/bin/macdeployqt build/${{ env.APP_NAME }}.app -verbose=1
+            tar -czf ${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz -C build ${{ env.APP_NAME }}.app
+            ;;
+          windows-latest)
+            cd build/Release
+            mkdir deploy
+            cp ${{ env.APP_NAME }}.exe deploy/
+            windeployqt deploy/${{ env.APP_NAME }}.exe --release --no-translations
+            tar -czf ../../${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz -C deploy .
+            ;;
+        esac
+
+    - uses: actions/upload-artifact@v5
+      with:
+        name: ${{ env.APP_NAME }}-${{ matrix.artifact }}
+        path: ${{ env.APP_NAME }}-${{ matrix.artifact }}-${{ env.ARCH }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - uses: actions/download-artifact@v6
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: Release ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: '**/*'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
