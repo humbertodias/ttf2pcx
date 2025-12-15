@@ -6,6 +6,8 @@
 
 A cross-platform Qt6 tool that converts TrueType fonts to PCX files for use with the Allegro game engine. Originally a Windows-only MFC application, now rewritten with Qt6 for Linux, Windows, and macOS.
 
+<img width="512" height="659" alt="image" src="https://github.com/user-attachments/assets/2b54311a-23d2-4901-bda2-60e4731b6621" />
+
 ## Features
 
 * **Platform-agnostic** — Works on Linux, Windows, and macOS
@@ -112,7 +114,6 @@ cmake --build build --config Release
    * **Antialiased** with configurable Min/Max color (1–254)
 7. Click **Export…** to save the font as a PCX file
 8. Import the PCX into the Allegro grabber program
-
 
 ## Antialiased Fonts
 
